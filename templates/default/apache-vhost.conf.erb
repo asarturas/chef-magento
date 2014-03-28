@@ -48,44 +48,35 @@
     EnableSendfile <%= @params[:magento]['apache']['enable_sendfile'] %>
 
     <% if @params[:apache]['basic_username'] %>
-        <% if @params[:apache]['allow_from'] %>
-            Satisfy Any
-        <% end %>
-    AuthUserFile <%= @params[:magento]['dir'] %>/.htpasswd
-    AuthType Basic
-    AuthName "Protected System"
-    Require valid-user
-    <% end  %>
+        AuthUserFile <%= @params[:magento]['dir'] %>/.htpasswd
+        AuthType Basic
+        AuthName "Protected System"
+        Require valid-user
 
-    ## Apache optimisation by disabling the .htaccess parsing
-    ## Directives for securing directorys have been added to this file
-    AllowOverride None
-    Order allow,deny
-    <% if @params[:apache]['allow_from'] %>
-        <% @params[:apache]['allow_from'].each do |ip| %>
-            Allow from <%= ip %>
-        <% end %>
-        <% if @params[:magento][:ip_whitelist][:enabled] %>
-            <% _useProxyEnvCheck = !@params[:ssl] and !node[:varnish].nil? %>
+        ## Apache optimisation by disabling the .htaccess parsing
+        ## Directives for securing directorys have been added to this file
+        AllowOverride None
+        Order allow,deny
 
+        <% _useProxyEnvCheck = !@params[:ssl] and !node[:varnish].nil? %>
+
+        <% if _useProxyEnvCheck %>
+            # Allow Varnish health probe
+            SetEnvIf Request_URI "^/LICENSE.txt$" proxy_env
+        <% end %>
+
+        # Allow access from IPs
+        <% @params[:apache][:allow_from].each do |ip| %>
             <% if _useProxyEnvCheck %>
-                # Allow Varnish health probe
-                SetEnvIf Request_URI "^/LICENSE.txt$" proxy_env
-            <% end %>
-
-            # Allow access from IPs
-            <% @params[:magento][:ip_whitelist][:ips].each do |ip| %>
-                <% if _useProxyEnvCheck %>
-                    SetEnvIf X-Forwarded-For ^<%= Regexp.escape(ip) %>$ proxy_env
-                <% else %>
-                    Allow from <%= ip %>
-                <% end %>
+                SetEnvIf X-Forwarded-For ^<%= Regexp.escape(ip) %>$ proxy_env
+            <% else %>
+                Allow from <%= ip %>
             <% end %>
         <% end %>
 
-        <% if @params[:magento][:ip_whitelist][:allow_domains].size > 0 %>
+        <% if @params[:apache][:allow_domain].size > 0 %>
             # Allow access for certain domains
-            <% @params[:magento][:ip_whitelist][:allow_domains].each do |domain| %>
+            <% @params[:apache][:allow_domain].each do |domain| %>
                 SetEnvIf Host ^<%= Regexp.escape(domain) %>$ pass_through_domain
             <% end %>
             Allow from env=pass_through_domain
