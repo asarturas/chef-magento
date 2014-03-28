@@ -3,10 +3,10 @@
 include "/etc/varnish/geoip.vcl";
 <% end %>
 
-<% if @magento[:ip_whitelist][:enabled] %>
+<% if node['apache']['basic_username'] %>
     acl ip_whitelist {
-    <% @magento[:ip_whitelist][:ips].each do |ip| %>
-        "<%= ip %>";
+    <% node['apache']['allow_from'].each do |ip| %>
+        <%= ip.include? '/' ? '"' + ip.sub('/', '"/') : '"' + ip + '"' %>;
     <% end %>
     }
 <% end %>
