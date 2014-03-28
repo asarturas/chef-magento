@@ -6,7 +6,13 @@ include "/etc/varnish/geoip.vcl";
 <% if node['apache']['basic_username'] %>
     acl ip_whitelist {
     <% node['apache']['allow_from'].each do |ip| %>
-        <%= ip.include? '/' ? '"' + ip.sub('/', '"/') : '"' + ip + '"' %>;
+        <% if ip.match(/^[0-9\.\/]+$/) %>
+            <% if ip.include? '/' %>
+                <%= '"' + ip.sub('/', '"/') %>;
+            <% else %>
+                "<%= ip %>";
+            <% end %>
+        <% end %>
     <% end %>
     }
 <% end %>
