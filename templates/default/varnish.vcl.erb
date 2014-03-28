@@ -63,7 +63,7 @@ acl purge {
 }
 
 sub vcl_recv {
-    <% if @magento[:ip_whitelist][:enabled] %>
+    <% if node['apache']['basic_username'] %>
         if (client.ip !~ ip_whitelist) {
             if (!req.http.Authorization && !req.http.Authenticate) {
                 # instead of returning 403 immediately,
