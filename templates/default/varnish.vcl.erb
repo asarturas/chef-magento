@@ -113,7 +113,7 @@ sub vcl_recv {
             return (pipe);
     }
     if (req.url ~ "^/(index.php/)?(<%= @magento['app']['admin_frontname'] %>|api/|directory/)" || req.url ~ "\?(.*&)*(___store=|SID=[a-zA-Z0-9]{16,})" || req.http.Cookie ~ "adminhtml") {
-        <% if @magento[:ip_whitelist][:enabled] %>
+        <% if node['apache']['basic_username'] %>
             return (pass);
         <% else %>
             return (pipe);
@@ -249,7 +249,7 @@ sub vcl_hash {
     hash_data(req.http.X-Geo-IP-Country);
     <% end %>
 
-    <% if @magento[:ip_whitelist][:enabled] %>
+    <% if node['apache']['basic_username'] %>
         hash_data(req.http.Authorization);
         hash_data(req.http.Authenticate);
     <% end %>
