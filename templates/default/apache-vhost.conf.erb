@@ -56,13 +56,12 @@
     <% end %>
 
     <% if @params[:apache]['basic_username'] %>
-      <% if @params[:apache]['allow_from'] %>
-        Satisfy Any
-      <% end %>
       AuthUserFile <%= @params[:magento]['dir'] %>/.htpasswd
       AuthType Basic
       AuthName "Protected System"
       Require valid-user
+
+      Order allow,deny
 
       <% _useProxyEnvCheck = !@params[:ssl] and !node[:varnish].nil? %>
 
