@@ -56,47 +56,46 @@
     <% end %>
 
     <% if @params[:apache]['basic_username'] %>
-        <% if @params[:apache]['allow_from'] %>
-            Satisfy Any
-        <% end %>
-    AuthUserFile <%= @params[:magento]['dir'] %>/.htpasswd
-    AuthType Basic
-    AuthName "Protected System"
-    Require valid-user
+      <% if @params[:apache]['allow_from'] %>
+        Satisfy Any
+      <% end %>
+      AuthUserFile <%= @params[:magento]['dir'] %>/.htpasswd
+      AuthType Basic
+      AuthName "Protected System"
+      Require valid-user
 
-    SetEnvIf Request_URI ^/LICENSE.txt$ noauth=1
-    Allow from env=noauth
-    <% end  %>
+      SetEnvIf Request_URI ^/LICENSE.txt$ noauth=1
+      Allow from env=noauth
 
       <% _useProxyEnvCheck = !@params[:ssl] and !node[:varnish].nil? %>
 
       <% if _useProxyEnvCheck %>
-          # Allow Varnish health probe
-          SetEnvIf Request_URI "^/LICENSE.txt$" proxy_env
+        # Allow Varnish health probe
+        SetEnvIf Request_URI "^/LICENSE.txt$" proxy_env
       <% end %>
 
       # Allow access from IPs and Domains
       <% @params[:apache][:allow_from].each do |record| %>
-          <% if record.match(/^[0-9\.\/]+$/) %>
-              <% if _useProxyEnvCheck %>
-                  SetEnvIf X-Forwarded-For ^<%= Regexp.escape(record) %>$ proxy_env
-              <% else %>
-                  Allow from <%= record %>
-              <% end %>
+        <% if record.match(/^[0-9\.\/]+$/) %>
+          <% if _useProxyEnvCheck %>
+            SetEnvIf X-Forwarded-For ^<%= Regexp.escape(record) %>$ proxy_env
           <% else %>
-              SetEnvIf Host ^<%= Regexp.escape(record) %>$ pass_through_domain
+            Allow from <%= record %>
           <% end %>
+        <% else %>
+          SetEnvIf Host ^<%= Regexp.escape(record) %>$ pass_through_domain
+        <% end %>
       <% end %>
 
       Satisfy Any
 
       Allow from env=pass_through_domain
       <% if _useProxyEnvCheck %>
-          Allow from env=proxy_env
+        Allow from env=proxy_env
       <% end %>
-  <% else %>
+    <% else %>
       Allow from all
-  <% end %>
+    <% end %>
   ############################################
     ## uncomment these lines for CGI mode
     ## make sure to specify the correct cgi php binary file name
