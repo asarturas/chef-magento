@@ -47,20 +47,18 @@
     EnableMMAP <%= @params[:magento]['apache']['enable_mmap'] %>
     EnableSendfile <%= @params[:magento]['apache']['enable_sendfile'] %>
 
-    <% if @params[:apache]['allow_from'] %>
-        Satisfy Any
-    <% end %>
-
     <% if @params[:apache]['basic_username'] %>
-      AuthUserFile <%= @params[:magento]['dir'] %>/.htpasswd
-      AuthType Basic
-      AuthName "Protected System"
-      Require valid-user
+        <% if @params[:apache]['allow_from'] %>
+            Satisfy Any
+        <% end %>
+    AuthUserFile <%= @params[:magento]['dir'] %>/.htpasswd
+    AuthType Basic
+    AuthName "Protected System"
+    Require valid-user
 
-      ## Apache optimisation by disabling the .htaccess parsing
-      ## Directives for securing directorys have been added to this file
-      AllowOverride None
-      Order allow,deny
+    SetEnvIf Request_URI ^/LICENSE.txt$ noauth=1
+    Allow from env=noauth
+    <% end  %>
 
       <% _useProxyEnvCheck = !@params[:ssl] and !node[:varnish].nil? %>
 
