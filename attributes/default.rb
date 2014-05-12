@@ -87,6 +87,7 @@ default['magento']['server']['aliases'] = Array.new
 default['magento']['server']['static_domains'] = Array.new
 
 default['extra_hostnames'] = Array.new
+default['extra_hosts'] = Hash.new
 
 ::Chef::Node.send(:include, Opscode::OpenSSL::Password)
 
