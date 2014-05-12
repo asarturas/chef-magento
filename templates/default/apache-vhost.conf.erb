@@ -64,9 +64,6 @@
       AuthName "Protected System"
       Require valid-user
 
-      SetEnvIf Request_URI ^/LICENSE.txt$ noauth=1
-      Allow from env=noauth
-
       <% _useProxyEnvCheck = !@params[:ssl] and !node[:varnish].nil? %>
 
       <% if _useProxyEnvCheck %>
