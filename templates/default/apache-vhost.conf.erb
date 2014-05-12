@@ -47,31 +47,51 @@
     EnableMMAP <%= @params[:magento]['apache']['enable_mmap'] %>
     EnableSendfile <%= @params[:magento]['apache']['enable_sendfile'] %>
 
-    <% if @params[:apache]['basic_username'] %>
-        <% if @params[:apache]['allow_from'] %>
-            Satisfy Any
-        <% end %>
-    AuthUserFile <%= @params[:magento]['dir'] %>/.htpasswd
-    AuthType Basic
-    AuthName "Protected System"
-    Require valid-user
-
-    SetEnvIf Request_URI ^/LICENSE.txt$ noauth=1
-    Allow from env=noauth
-    <% end  %>
-
-    ## Apache optimisation by disabling the .htaccess parsing
-    ## Directives for securing directorys have been added to this file
-    AllowOverride None
-    Order allow,deny
     <% if @params[:apache]['allow_from'] %>
-        <% @params[:apache]['allow_from'].each do |ip| %>
-            Allow from <%= ip %>
-        <% end %>
-    <% else %>
-        Allow from all
+        Satisfy Any
     <% end %>
-    ############################################
+
+    <% if @params[:apache]['basic_username'] %>
+      AuthUserFile <%= @params[:magento]['dir'] %>/.htpasswd
+      AuthType Basic
+      AuthName "Protected System"
+      Require valid-user
+
+      ## Apache optimisation by disabling the .htaccess parsing
+      ## Directives for securing directorys have been added to this file
+      AllowOverride None
+      Order allow,deny
+
+      <% _useProxyEnvCheck = !@params[:ssl] and !node[:varnish].nil? %>
+
+      <% if _useProxyEnvCheck %>
+          # Allow Varnish health probe
+          SetEnvIf Request_URI "^/LICENSE.txt$" proxy_env
+      <% end %>
+
+      # Allow access from IPs and Domains
+      <% @params[:apache][:allow_from].each do |record| %>
+          <% if record.match(/^[0-9\.\/]+$/) %>
+              <% if _useProxyEnvCheck %>
+                  SetEnvIf X-Forwarded-For ^<%= Regexp.escape(record) %>$ proxy_env
+              <% else %>
+                  Allow from <%= record %>
+              <% end %>
+          <% else %>
+              SetEnvIf Host ^<%= Regexp.escape(record) %>$ pass_through_domain
+          <% end %>
+      <% end %>
+
+      Satisfy Any
+
+      Allow from env=pass_through_domain
+      <% if _useProxyEnvCheck %>
+          Allow from env=proxy_env
+      <% end %>
+  <% else %>
+      Allow from all
+  <% end %>
+  ############################################
     ## uncomment these lines for CGI mode
     ## make sure to specify the correct cgi php binary file name
     ## it might be /cgi-bin/php-cgi
