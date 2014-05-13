@@ -66,7 +66,7 @@ default['magento']['admin']['email'] = "chef@magento.com"
 default['magento']['admin']['user'] = "chef"
 default['magento']['admin']['password'] = '123123pass'
 default['varnish']['cookies'] = ['currency', 'store']
-default['varnish']['healthcheck_host'] = ''
+default['varnish']['healthcheck_host'] = false
 
 default['magento']['varnish']['backend_servers'] = [
     {
