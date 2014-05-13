@@ -22,7 +22,7 @@ include "/etc/varnish/geoip.vcl";
 probe healthcheck {
    .request =
          "GET /LICENSE.txt HTTP/1.1"
-         "Host: <%= @magento[:apache][:servername] %>"
+         "Host: <%= node['varnish']['healthcheck_host'] || @magento[:apache][:servername] %>"
          "Connection: close";
    .interval = 120s;
    .timeout = 90s; # High values due to expected slow responses
